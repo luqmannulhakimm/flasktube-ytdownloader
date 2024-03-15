@@ -28,3 +28,4 @@ python app.py
 4. Click the "Download" button next to the selected resolution to download the video.
 
 ## Preview
+![Capture](https://github.com/luqmannulhakimm/flasktube-ytdownloader/assets/42575926/5a94a7ff-ec68-4725-9aaf-8f0bb1895483)
