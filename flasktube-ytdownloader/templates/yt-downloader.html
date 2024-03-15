@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Youtube Video Downloader</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body class="bg-dark">
+
+<div class="container text-center shadow p-3 rounded bg-white" style="margin-top: 2%">
+    <img src="/static/content-images/main-images.png" alt="">
+    <h3>Youtube Video Downloader</h3>
+
+    <form class="p-3" method="POST" action="/yt-downloader">
+        <label for="basic-url" class="form-label" style="font-size: 20px;"></label>
+        <div class="input-group mb-3">
+            <span class="input-group-text" id="basic-addon3">Video URL :</span>
+            <input type="text" class="form-control" id="basic-url" aria-describedby="basic-addon3" name="VidURL">
+        </div>
+        <button type="submit" id="submitStart" style="width: 300px; border-radius: 5px; padding: 5px; display:none" class="btn btn-dark">Start</button>
+        {% if error %}
+        <div class="alert alert-danger" role="alert">
+            {{ error }}
+        </div>
+        {% endif %}
+    </form>
+
+</div>
+
+{% if title %}
+<div class="container p-3 mt-3 text-center" >
+    <div class="card mb-3">
+        <img src="{{ thumbnail }}" style="width: 400px; height: auto; margin: auto; margin-top: 15px;">
+        <div class="card-body">
+            <h5 class="card-title">{{ title }}</h5>
+            <p class="card-text"><i style="font-weight: 600;">{{views}} Views | {{length}}</i></p>
+        </div>
+        <div class="container p-3">
+            <div class="card">
+                <div class="card-header">
+                    MP4
+                </div>
+                <div class="container p-3">
+                    <select id="itagValue" class="form-select text-center" aria-label="Default select example" style="margin: auto;">
+                        {% for stream in stream_data %}
+                            <option value="{{ stream['itag'] }}">{{ stream['itag'] }} - {{ stream['mime_type'] }} - {{ stream['res'] }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="text-center mb-3">                            
+                    <button type="button" onclick="downloadVideo()" class="btn btn-dark" style="width: 150px;"><i class="fa-solid fa-download me-2"></i>Download</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="container"></div>
+{% endif %}
+
+<p id="HiddenYoutubeUrl" style="display: none">{{ youtube_url }}</p>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.getElementById("basic-url").addEventListener("input", function() {
+        document.getElementById("submitStart").click();
+    });
+
+    function downloadVideo() {
+        var itagValues = document.getElementById('itagValue');
+        var getVidURL = document.getElementById('HiddenYoutubeUrl').textContent;
+        var selectedValue = itagValues.value;
+
+        // Send the selected resolution to the Flask backend for download
+        fetch('/download', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ tagValues: selectedValue, vidURL: getVidURL})
+        })
+        .then(response => response.blob())
+        .then(blob => {
+            // Create a temporary link element to trigger the download
+            var url = window.URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = 'Flask-Yotube-Video-Downloader.mp4'; // Change the filename as needed
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+</script>
+
+</body>
+</html>
